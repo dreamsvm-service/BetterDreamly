@@ -21,21 +21,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install PocketMine PHP binary
+      # --- PHP 8.1 (PMMP 4) ---
+      - name: Download PHP
         run: |
-          curl -sL https://github.com/pmmp/PHP-Build-Scripts/releases/latest/download/installer.sh | bash -s -- -t server -f
+          curl -L -o php.tar.gz https://github.com/pmmp/PHP-Binaries/releases/download/pm4-php-8.1-latest/PHP-8.1-Linux-x86_64-PM4.tar.gz
+          tar -xzf php.tar.gz -C $HOME
           echo "$HOME/bin" >> $GITHUB_PATH
-          echo "PHP_BINARY=$HOME/bin/php/bin/php" >> $GITHUB_ENV
+          echo "PHP_BINARY=$HOME/bin/php" >> $GITHUB_ENV
 
       - name: Verify PHP
         run: |
           $PHP_BINARY -v
 
+      # --- Composer ---
       - name: Install Composer
         run: |
           curl -sS https://getcomposer.org/installer | $PHP_BINARY
           mv composer.phar /usr/local/bin/composer
 
+      # --- Dependencies ---
       - name: Install dependencies
         run: |
           $PHP_BINARY /usr/local/bin/composer install \
@@ -43,11 +47,13 @@ jobs:
             --classmap-authoritative \
             --ignore-platform-reqs
 
+      # --- Build PHAR ---
       - name: Build server phar
         run: |
           $PHP_BINARY -dphar.readonly=0 build/server-phar.php \
             --out BetterDreamly.phar
 
+      # --- Upload artifact ---
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -55,6 +61,7 @@ jobs:
           path: BetterDreamly.phar
           retention-days: 30
 
+      # --- Release attach ---
       - name: Attach to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
