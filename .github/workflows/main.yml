@@ -24,8 +24,8 @@ jobs:
           curl -L -o php.tar.gz https://github.com/pmmp/PHP-Binaries/releases/download/pm5-php-8.4-latest/PHP-8.4-Linux-x86_64-PM5.tar.gz
           mkdir -p $HOME/php
           tar -xzf php.tar.gz -C $HOME/php
-          echo "$HOME/php/bin/php7/bin" >> $GITHUB_PATH
-          echo "PHP_BINARY=$HOME/php/bin/php7/bin/php" >> $GITHUB_ENV
+          echo "$HOME/php/bin" >> $GITHUB_PATH
+          echo "PHP_BINARY=$HOME/php/bin/php" >> $GITHUB_ENV
 
       - name: Verify PHP
         run: $PHP_BINARY -v
@@ -35,13 +35,9 @@ jobs:
           curl -sS https://getcomposer.org/installer | $PHP_BINARY
           mv composer.phar /usr/local/bin/composer
 
-      - name: Fix composer
-        run: |
-          rm -f composer.lock
-          $PHP_BINARY /usr/local/bin/composer update --no-dev --ignore-platform-reqs
-
       - name: Install dependencies
         run: |
+          $PHP_BINARY /usr/local/bin/composer config --global audit.block-insecure false
           $PHP_BINARY /usr/local/bin/composer install --no-dev --classmap-authoritative --ignore-platform-reqs
 
       - name: Build server phar
