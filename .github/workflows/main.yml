@@ -18,14 +18,18 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Install PocketMine PHP binary
         run: |
-          curl -sL https://raw.githubusercontent.com/pmmp/php-build-scripts/main/installer.sh \
-            | bash -s -- -t server -f
+          curl -sL https://github.com/pmmp/PHP-Build-Scripts/releases/latest/download/installer.sh | bash -s -- -t server -f
           echo "$HOME/bin" >> $GITHUB_PATH
-          echo "PHP_BINARY=$HOME/bin/php8/bin/php" >> $GITHUB_ENV
+          echo "PHP_BINARY=$HOME/bin/php/bin/php" >> $GITHUB_ENV
+
+      - name: Verify PHP
+        run: |
+          $PHP_BINARY -v
 
       - name: Install Composer
         run: |
