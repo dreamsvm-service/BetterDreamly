@@ -18,17 +18,25 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+      # Checkout repo
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # --- PHP 8.1 (PMMP 4) ---
-      - name: Download PHP
+      # --- Download and setup PHP 8.1 (PMMP 4) ---
+      - name: Setup PHP
         run: |
           curl -L -o php.tar.gz https://github.com/pmmp/PHP-Binaries/releases/download/pm4-php-8.1-latest/PHP-8.1-Linux-x86_64-PM4.tar.gz
-          tar -xzf php.tar.gz -C $HOME
-          echo "$HOME/bin" >> $GITHUB_PATH
-          echo "PHP_BINARY=$HOME/bin/php" >> $GITHUB_ENV
+          mkdir -p $HOME/php
+          tar -xzf php.tar.gz -C $HOME/php
 
+          echo "Files in PHP dir:"
+          ls -R $HOME/php
+
+          # ustaw poprawną ścieżkę (ważne!)
+          echo "$HOME/php/bin" >> $GITHUB_PATH
+          echo "PHP_BINARY=$HOME/php/bin/php" >> $GITHUB_ENV
+
+      # Verify PHP
       - name: Verify PHP
         run: |
           $PHP_BINARY -v
@@ -61,7 +69,7 @@ jobs:
           path: BetterDreamly.phar
           retention-days: 30
 
-      # --- Release attach ---
+      # --- Attach to release ---
       - name: Attach to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
