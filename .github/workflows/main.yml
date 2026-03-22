@@ -1,0 +1,58 @@
+name: Build BetterDreamly
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  release:
+    types: [ created ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Server Phar
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install PocketMine PHP binary
+        run: |
+          curl -sL https://raw.githubusercontent.com/pmmp/php-build-scripts/main/installer.sh \
+            | bash -s -- -t server -f
+          echo "$HOME/bin" >> $GITHUB_PATH
+          echo "PHP_BINARY=$HOME/bin/php8/bin/php" >> $GITHUB_ENV
+
+      - name: Install Composer
+        run: |
+          curl -sS https://getcomposer.org/installer | $PHP_BINARY
+          mv composer.phar /usr/local/bin/composer
+
+      - name: Install dependencies
+        run: |
+          $PHP_BINARY /usr/local/bin/composer install \
+            --no-dev \
+            --classmap-authoritative \
+            --ignore-platform-reqs
+
+      - name: Build server phar
+        run: |
+          $PHP_BINARY -dphar.readonly=0 build/server-phar.php \
+            --out BetterDreamly.phar
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BetterDreamly-${{ github.sha }}
+          path: BetterDreamly.phar
+          retention-days: 30
+
+      - name: Attach to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: BetterDreamly.phar
