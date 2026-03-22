@@ -35,6 +35,11 @@ jobs:
           curl -sS https://getcomposer.org/installer | $PHP_BINARY
           mv composer.phar /usr/local/bin/composer
 
+      - name: Fix composer
+        run: |
+          rm -f composer.lock
+          $PHP_BINARY /usr/local/bin/composer update --no-dev --ignore-platform-reqs
+
       - name: Install dependencies
         run: |
           $PHP_BINARY /usr/local/bin/composer install --no-dev --classmap-authoritative --ignore-platform-reqs
